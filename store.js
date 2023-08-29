@@ -10,64 +10,61 @@ export class Store {
   constructor(discountOffers = []) {
     this.discountOffers = discountOffers;
   }
-  updateDiscounts() {
-    for (var i = 0; i < this.discountOffers.length; i++) {
-      if (
-        this.discountOffers[i].partnerName != "Naturalia" &&
-        this.discountOffers[i].partnerName != "Vinted"
-      ) {
-        if (this.discountOffers[i].discountInPercent > 0) {
-          if (this.discountOffers[i].partnerName != "Ilek") {
-            this.discountOffers[i].discountInPercent =
-              this.discountOffers[i].discountInPercent - 1;
-          }
-        }
-      } else {
-        if (this.discountOffers[i].discountInPercent < 50) {
-          this.discountOffers[i].discountInPercent =
-            this.discountOffers[i].discountInPercent + 1;
-          if (this.discountOffers[i].partnerName == "Vinted") {
-            if (this.discountOffers[i].expiresIn < 11) {
-              if (this.discountOffers[i].discountInPercent < 50) {
-                this.discountOffers[i].discountInPercent =
-                  this.discountOffers[i].discountInPercent + 1;
-              }
-            }
-            if (this.discountOffers[i].expiresIn < 6) {
-              if (this.discountOffers[i].discountInPercent < 50) {
-                this.discountOffers[i].discountInPercent =
-                  this.discountOffers[i].discountInPercent + 1;
-              }
-            }
-          }
-        }
-      }
-      if (this.discountOffers[i].partnerName != "Ilek") {
-        this.discountOffers[i].expiresIn = this.discountOffers[i].expiresIn - 1;
-      }
-      if (this.discountOffers[i].expiresIn < 0) {
-        if (this.discountOffers[i].partnerName != "Naturalia") {
-          if (this.discountOffers[i].partnerName != "Vinted") {
-            if (this.discountOffers[i].discountInPercent > 0) {
-              if (this.discountOffers[i].partnerName != "Ilek") {
-                this.discountOffers[i].discountInPercent =
-                  this.discountOffers[i].discountInPercent - 1;
-              }
-            }
-          } else {
-            this.discountOffers[i].discountInPercent =
-              this.discountOffers[i].discountInPercent -
-              this.discountOffers[i].discountInPercent;
-          }
-        } else {
-          if (this.discountOffers[i].discountInPercent < 50) {
-            this.discountOffers[i].discountInPercent =
-              this.discountOffers[i].discountInPercent + 1;
-          }
-        }
-      }
-    }
 
+  updateDiscounts() {
+    for (let i = 0; i < this.discountOffers.length; i++) {
+      this.updateDiscount(this.discountOffers[i]);
+    }
     return this.discountOffers;
+  }
+
+  updateDiscount(offer) {
+    switch (offer.partnerName) {
+      case "Ilek":
+        return this.updateIlekDiscount(offer);
+      case "Naturalia":
+        this.updateNaturaliaDiscount(offer);
+        break;
+      case "Vinted":
+        this.updateVintedDiscount(offer);
+        break;
+      default:
+        this.updateDefaultDiscount(offer);
+        break;
+    }
+    // Ensure discount is within [0, 50] range
+    offer.discountInPercent = Math.max(
+      0,
+      Math.min(50, offer.discountInPercent)
+    );
+
+    // Update expiration
+    offer.expiresIn--;
+  }
+
+  updateIlekDiscount(offer) {
+    offer.discountInPercent = Math.max(
+      0,
+      Math.min(50, offer.discountInPercent)
+    );
+  }
+  updateNaturaliaDiscount(offer) {
+    offer.discountInPercent += offer.expiresIn > 0 ? 1 : 2;
+  }
+
+  updateVintedDiscount(offer) {
+    if (offer.expiresIn <= 0) {
+      offer.discountInPercent = 0;
+    } else if (offer.expiresIn <= 5) {
+      offer.discountInPercent += 3;
+    } else if (offer.expiresIn <= 10) {
+      offer.discountInPercent += 2;
+    } else {
+      offer.discountInPercent += 1;
+    }
+  }
+
+  updateDefaultDiscount(offer) {
+    offer.discountInPercent -= offer.expiresIn <= 0 ? 2 : 1;
   }
 }
