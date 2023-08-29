@@ -28,6 +28,9 @@ export class Store {
       case "Vinted":
         this.updateVintedDiscount(offer);
         break;
+      case "BackMarket": // Add a case for the new partner "BackMarket"
+        this.updateBackMarketDiscount(offer);
+        break;
       default:
         this.updateDefaultDiscount(offer);
         break;
@@ -62,6 +65,10 @@ export class Store {
     } else {
       offer.discountInPercent += 1;
     }
+  }
+
+  updateBackMarketDiscount(offer) {
+    offer.discountInPercent -= offer.expiresIn <= 0 ? 4 : 2; // Decreases twice as fast
   }
 
   updateDefaultDiscount(offer) {
